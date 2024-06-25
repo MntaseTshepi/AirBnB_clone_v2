@@ -1,9 +1,13 @@
 #!/usr/bin/python3
 """ Module for testing file storage"""
 import unittest
+import os
+import time
+import json
+from models.state import State
+from models.engine.file_storage import FileStorage
 from models.base_model import BaseModel
 from models import storage
-import os
 
 
 class test_fileStorage(unittest.TestCase):
@@ -36,10 +40,19 @@ class test_fileStorage(unittest.TestCase):
         self.assertTrue(temp is obj)
 
     def test_all(self):
-        """ __objects is properly returned """
-        new = BaseModel()
-        temp = storage.all()
-        self.assertIsInstance(temp, dict)
+        """Test default all method."""
+        obj = self.storage.all()
+        self.assertEqual(type(obj), dict)
+        self.assertIs(obj, FileStorage._FileStorage__objects)
+        self.assertEqual(len(obj), 7)
+
+    def test_all_cls(self):
+        """Test all method with specified cls."""
+        obj = self.storage.all(BaseModel)
+        self.assertEqual(type(obj), dict)
+        self.assertEqual(len(obj), 1)
+        self.assertEqual(self.base, list(obj.values())[0])
+
 
     def test_base_model_instantiation(self):
         """ File is not created on BaseModel save """
@@ -59,6 +72,28 @@ class test_fileStorage(unittest.TestCase):
         new = BaseModel()
         storage.save()
         self.assertTrue(os.path.exists('file.json'))
+    
+    def test_delete(self):
+        new_state = State()
+        new_state.name = "California***********"
+        fs = FileStorage()
+        fs.new(new_state)
+        fs.save()
+        self.assertTrue(os.path.isfile("file.json"))
+        with open("file.json", encoding="UTF8") as fd:
+            content = fd.read()
+        flag = 1
+        if new_state.id in content:
+            flag = 0
+        self.assertTrue(flag == 0)
+        fs.delete(new_state)
+        fs.save()
+        with open("file.json", encoding="UTF8") as fd:
+            content = fd.read()
+        flag = 0
+        if new_state.id in content:
+            flag = 1
+        self.assertTrue(flag == 0)
 
     def test_reload(self):
         """ Storage file is successfully loaded to __objects """
