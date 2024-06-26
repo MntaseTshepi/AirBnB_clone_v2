@@ -143,30 +143,18 @@ class HBNBCommand(cmd.Cmd):
         If no class is specified, displays all instantiated objects."""
         if not line:
             o = storage.all()
-            # print("o from storage.all() is {}".format(o))
             print([o[k].__str__() for k in o])
             return
-        some_list = []
-        if line:
+        try:
             args = line.split(" ")
             if args[0] not in self.__classes:
-                print("** class doesn't exist **")
-                return
+                raise NameError()
 
-            o = storage.all(args[0])
-            """print("o is {} when args[0] which is {} is passed".
-            format(o, args[0]))"""
-            for k, v in o.items():
-                """the_id = v.id
-                key = args[0] + '.' + the_id
-                try:
-                    some_list.append(o[key])
-                except KeyError:
-                    continue"""
-                some_list.append(v)
-            print(some_list)
-        """except NameError:
-            print("** class doesn't exist **")"""
+            o = storage.all(eval(args[0]))
+            print([o[k].__str__() for k in o])
+
+        except NameError:
+            print("** class doesn't exist **")
 
     def do_update(self, line):
         """Updates an instanceby adding or updating attribute
